@@ -1,7 +1,12 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from "react";
 import type { LucideIcon } from "lucide-react";
 import {
-  Server,
   LogOut,
   Building2,
   CalendarClock,
@@ -10,7 +15,8 @@ import {
   ShieldCheck,
   BarChart3,
   Ban,
-  AlertCircle
+  AlertCircle,
+  ChevronDown
 } from "lucide-react";
 import "./../styles/AdminDashboard.css";
 import {
@@ -44,12 +50,10 @@ interface ModuleDefinition {
   color: "blue" | "green" | "indigo" | "purple" | "orange" | "red";
 }
 
-interface AuditEntry {
-  id: string;
-  module: ModuleId;
-  message: string;
-  detail?: string;
-  createdAt: string;
+interface NavGroup {
+  id: "reservas" | "gestiones" | "reportes";
+  label: string;
+  modules: ModuleId[];
 }
 
 interface User {
@@ -71,14 +75,14 @@ interface AdminDashboardProps {
 const MODULES: ModuleDefinition[] = [
   {
     id: "labs",
-    name: "Gestion de Espacios",
+    name: "Espacios",
     description: "Administra aulas, laboratorios y ambientes especiales",
     icon: Building2,
     color: "blue"
   },
   {
     id: "schedules",
-    name: "Gestion de Horarios",
+    name: "Horarios",
     description: "Configura turnos y tiempos por cada escuela",
     icon: CalendarClock,
     color: "green"
@@ -99,7 +103,7 @@ const MODULES: ModuleDefinition[] = [
   },
   {
     id: "users",
-    name: "Usuarios",
+    name: "Usuario",
     description: "Define responsables y permisos del sistema",
     icon: UsersRound,
     color: "purple"
@@ -134,19 +138,23 @@ const SUPERVISOR_ALLOWED_MODULES: ModuleId[] = [
   "incidencias"
 ];
 
-const formatTimestamp = (isoDate: string): string => {
-  try {
-    return new Intl.DateTimeFormat("es-PE", {
-      dateStyle: "medium",
-      timeStyle: "short"
-    }).format(new Date(isoDate));
-  } catch {
-    return new Date(isoDate).toLocaleString();
+const NAV_GROUPS: NavGroup[] = [
+  {
+    id: "reservas",
+    label: "Reservas",
+    modules: ["reservas", "incidencias", "sanctions"]
+  },
+  {
+    id: "gestiones",
+    label: "Gestiones",
+    modules: ["labs", "schedules", "users"]
+  },
+  {
+    id: "reportes",
+    label: "Reportes",
+    modules: ["reports", "audit"]
   }
-};
-
-const buildAuditId = (): string =>
-  `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+];
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
   const normalizedRole = useMemo(
@@ -165,7 +173,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
     return MODULES;
   }, [isSupervisor]);
 
-  const [activeModule, setActiveModule] = useState<ModuleId>("labs");
+  const [activeModule, setActiveModule] = useState<ModuleId>("reservas");
+  const [openGroups, setOpenGroups] = useState<Record<NavGroup["id"], boolean>>({
+    reservas: true,
+    gestiones: true,
+    reportes: true
+  });
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!availableModules.some((module) => module.id === activeModule)) {
@@ -174,16 +189,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
     }
   }, [activeModule, availableModules]);
 
-  const [auditTrail, setAuditTrail] = useState<AuditEntry[]>([]);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-  // CORRECCIÓN AQUÍ
-  const moduleDictionary = useMemo(() => {
-    return availableModules.reduce((acc, module) => {
-      acc[module.id] = module;
-      return acc;
-    }, {} as Record<ModuleId, ModuleDefinition>);
-  }, [availableModules]);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const userInitial = useMemo(() => {
     const fallback = user.email || "A";
@@ -196,21 +203,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
     [user.user_metadata.login_type]
   );
 
-  const addAuditLog = useCallback(
-    (message: string, detail?: string) => {
-      setAuditTrail((prev) => {
-        const entry: AuditEntry = {
-          id: buildAuditId(),
-          module: activeModule,
-          message,
-          detail,
-          createdAt: new Date().toISOString()
-        };
-        return [entry, ...prev].slice(0, 20);
-      });
-    },
-    [activeModule]
-  );
+  const displayRole = useMemo(() => {
+    const rawRole = user.user_metadata.role?.trim();
+    if (!rawRole) return "Administrador";
+    return rawRole.charAt(0).toUpperCase() + rawRole.slice(1);
+  }, [user.user_metadata.role]);
+
+  const addAuditLog = useCallback(() => {}, []);
 
   const handleLogout = useCallback(async () => {
     if (isLoggingOut) return;
@@ -229,146 +228,219 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
       } catch {}
       window.location.reload();
     }
-  }, [isLoggingOut, shouldNotifyBackend, user.id]);
+  }, [isLoggingOut, shouldNotifyBackend, user.id, user.sessionToken]);
+
+    useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        profileRef.current &&
+        event.target instanceof Node &&
+        !profileRef.current.contains(event.target)
+      ) {
+        setIsProfileOpen(false);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsProfileOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keyup", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keyup", handleEscape);
+    };
+  }, []);
 
   return (
-    <div className="admin-dashboard">
-      <header className="admin-header">
-        <div className="admin-header-container">
-          <div className="admin-header-left">
-            <div className="admin-logo">
-              <Server className="admin-logo-icon" />
-            </div>
-            <div>
-              <h1 className="admin-title">Panel de Control Administrativo</h1>
-              <p className="admin-subtitle">IntegraUPT - Sistema de Gestion</p>
-            </div>
+    <div
+      className={`admin-dashboard ${
+        isSidebarCollapsed ? "is-sidebar-collapsed" : ""
+      }`}
+    >
+            <header className="admin-header">
+        <div className="admin-header-left">
+          <button
+            type="button"
+            className={`admin-sidebar-toggle ${
+              isSidebarCollapsed ? "is-collapsed" : ""
+            }`}
+            onClick={() => setIsSidebarCollapsed((prev) => !prev)}
+            aria-pressed={isSidebarCollapsed}
+            aria-label="Alternar menu lateral"
+          >
+            <span className="admin-sidebar-toggle-icon">
+              <span />
+              <span />
+            </span>
+          </button>
+          <div className="admin-header-text">
+            <p className="admin-kicker">Panel principal</p>
+            <p className="admin-header-helper">IntegraUPT - Sistema de Gestion</p>
           </div>
+        </div>
 
-          <div className="admin-header-right">
+        <div className="admin-header-right" ref={profileRef}>
+          <button
+            type="button"
+            className={`admin-profile-trigger ${
+              isProfileOpen ? "is-open" : ""
+            }`}
+            onClick={() => setIsProfileOpen((prev) => !prev)}
+            aria-expanded={isProfileOpen}
+            aria-haspopup="true"
+          >
             <div className="admin-user-info">
               <p className="admin-user-name">{user.user_metadata.name}</p>
-              <p className="admin-user-role">
-                {user.user_metadata.role ?? "Administrador del Sistema"}
-              </p>
             </div>
             <div className="admin-user-avatar">
               <span className="admin-avatar-text">{userInitial}</span>
             </div>
-            <button
-              onClick={handleLogout}
-              className="admin-logout-btn"
-              disabled={isLoggingOut}
-            >
-              <LogOut className="admin-logout-icon" />
-              {isLoggingOut ? "Cerrando..." : "Cerrar Sesion"}
-            </button>
-          </div>
+          </button>
+
+          {isProfileOpen && (
+            <div className="admin-profile-card" role="dialog" aria-label="Perfil">
+              <div className="admin-profile-surface">
+                <div className="admin-profile-overview">
+                  <div className="admin-profile-avatar-large" aria-hidden>
+                    <span className="admin-avatar-text">{userInitial}</span>
+                  </div>
+
+                  <div className="admin-profile-text">
+                    <p className="admin-profile-name">{user.user_metadata.name}</p>
+                    {user.email ? (
+                      <p className="admin-profile-email">{user.email}</p>
+                    ) : null}
+                    <p className="admin-profile-role">Rol: {displayRole}</p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className="admin-profile-logout"
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                >
+                  <LogOut className="admin-profile-logout-icon" />
+                  {isLoggingOut ? "Cerrando..." : "Cerrar Sesion"}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </header>
 
-      <div className="admin-main-container">
-        <div className="admin-modules-grid">
-          {availableModules.map((module) => {
-            const Icon = module.icon;
-            const isActive = activeModule === module.id;
-            return (
-              <button
-                key={module.id}
-                onClick={() => setActiveModule(module.id)}
-                className={`admin-module-card ${
-                  isActive ? "admin-module-active" : ""
-                }`}
-              >
-                <div className={`admin-module-icon admin-module-${module.color}`}>
-                  <Icon className="admin-module-icon-svg" />
+      <aside
+        className={`admin-sidebar ${isSidebarCollapsed ? "is-collapsed" : ""}`}
+      >
+
+        <div className="admin-sidebar-nav-wrapper">
+
+          <nav className="admin-nav">
+            {NAV_GROUPS.map((group) => {
+              const isOpen = openGroups[group.id];
+              return (
+                <div key={group.id} className="admin-nav-group">
+                  <button
+                    type="button"
+                    className="admin-group-button"
+                    aria-expanded={isOpen}
+                    onClick={() =>
+                      setOpenGroups((prev) => ({
+                        ...prev,
+                        [group.id]: !prev[group.id]
+                      }))
+                    }
+                  >
+                    <div className="admin-group-label-stack">
+                      <span className="admin-group-label">{group.label}</span>
+                    </div>
+                    <ChevronDown
+                      className={`admin-group-icon ${isOpen ? "is-open" : ""}`}
+                    />
+                  </button>
+
+                  <div
+                    className={`admin-group-items ${isOpen ? "group-open" : "group-closed"}`}
+                  >
+                    {group.modules
+                      .filter((moduleId) =>
+                        availableModules.some((module) => module.id === moduleId)
+                      )
+                      .map((moduleId) => {
+                        const module = availableModules.find(
+                          (item) => item.id === moduleId
+                        );
+                        if (!module) return null;
+                        const Icon = module.icon;
+                        const isActive = activeModule === module.id;
+                        return (
+                          <button
+                            key={module.id}
+                            onClick={() => setActiveModule(module.id)}
+                            className={`admin-nav-button ${
+                              isActive ? "admin-nav-button-active" : ""
+                            }`}
+                            aria-current={isActive ? "page" : undefined}
+                          >
+                            <span
+                              className={`admin-nav-icon admin-module-${module.color}`}
+                            >
+                              <Icon className="admin-nav-icon-svg" />
+                            </span>
+                            <span className="admin-nav-title">{module.name}</span>
+                          </button>
+                        );
+                      })}
+                  </div>
                 </div>
-                <h3 className="admin-module-title">{module.name}</h3>
-                <p className="admin-module-description">
-                  {module.description}
-                </p>
-              </button>
-            );
-          })}
+              );
+            })}
+          </nav>
         </div>
 
-        <div className="admin-content">
-          {activeModule === "labs" && (
-            <GestionEspacios onAuditLog={addAuditLog} />
-          )}
+      </aside>
 
-          {activeModule === "schedules" && <GestionHorarios />}
+      <div className="admin-main-stack">
+        <div className="admin-panels">
+          <div className="admin-content-shell">
+            <div className="admin-content">
+              {activeModule === "labs" && (
+                <GestionEspacios onAuditLog={addAuditLog} />
+              )}
 
-          {activeModule === "sanctions" && (
-            <GestionSanciones onAuditLog={addAuditLog} currentUser={user} />
-          )}
+              {activeModule === "schedules" && <GestionHorarios />}
 
-          {activeModule === "reservas" && (
-            <GestionReservas onAuditLog={addAuditLog} currentUser={user} />
-          )}
+              {activeModule === "sanctions" && (
+                <GestionSanciones onAuditLog={addAuditLog} currentUser={user} />
+              )}
 
-          {activeModule === "users" && (
-            <GestionUsuarios onAuditLog={addAuditLog} />
-          )}
+              {activeModule === "reservas" && (
+                <GestionReservas onAuditLog={addAuditLog} currentUser={user} />
+              )}
 
-          {activeModule === "incidencias" && (
-            <GestionIncidencias onAuditLog={addAuditLog} currentUser={user} />
-          )}
+              {activeModule === "users" && (
+                <GestionUsuarios onAuditLog={addAuditLog} />
+              )}
 
-          {activeModule === "reports" && (
-            <GestionReportes onAuditLog={addAuditLog} />
-          )}
+              {activeModule === "incidencias" && (
+                <GestionIncidencias onAuditLog={addAuditLog} currentUser={user} />
+              )}
 
-          {activeModule === "audit" && (
-                  <GestionAuditoria onAuditLog={addAuditLog} />
-                )}
-        </div>
+              {activeModule === "reports" && (
+                <GestionReportes onAuditLog={addAuditLog} />
+              )}
 
-        <div className="admin-activity-panel">
-          <div className="admin-activity-header">
-            <div>
-              <h2 className="admin-title">Actividad reciente</h2>
-              <p className="admin-subtitle">
-                Eventos generados por los modulos del panel
-              </p>
+              {activeModule === "audit" && (
+                <GestionAuditoria onAuditLog={addAuditLog} />
+              )}
             </div>
           </div>
 
-          {auditTrail.length === 0 ? (
-            <p className="admin-activity-empty">
-              Aun no se registran movimientos en esta sesion.
-            </p>
-          ) : (
-            <ul className="admin-activity-list">
-              {auditTrail.map((entry) => {
-                const moduleMeta = moduleDictionary[entry.module];
-                return (
-                  <li key={entry.id} className="admin-activity-item">
-                    <div>
-                      <p className="admin-activity-message">
-                        {entry.message}
-                      </p>
-                      {entry.detail && (
-                        <p className="admin-activity-detail">
-                          {entry.detail}
-                        </p>
-                      )}
-                      <span className="admin-activity-time">
-                        {formatTimestamp(entry.createdAt)}
-                      </span>
-                    </div>
-                    <span
-                      className={`admin-activity-badge admin-activity-badge-${
-                        moduleMeta?.color ?? "blue"
-                      }`}
-                    >
-                      {moduleMeta?.name ?? entry.module}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
         </div>
       </div>
     </div>

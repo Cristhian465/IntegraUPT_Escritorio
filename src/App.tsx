@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { LoginScreen} from './components/pages/Autenticacion/LoginScreen';
-  import type { BackendPerfil,  BackendSession } from './components/pages/Autenticacion/types';
+import type { BackendPerfil,  BackendSession } from './components/pages/Autenticacion/types';
 import { Dashboard } from './components/Dashboard';
+import { QrReservaVerificationPage } from './components/pages/QrReservas/QrReservaVerificationPage';
+import { getLoginApiUrl } from './utils/apiConfig';
 import './styles/App.css';
 
 const SESSION_STORAGE_KEY = 'admin_session';
@@ -150,6 +152,13 @@ function App() {
       },
     };
   }, [qrRoute, session]);
+
+  useEffect(() => {
+    if (qrRoute) return;
+
+    const mode = user ? 'authenticated' : 'login';
+    window.uptDesktop?.setWindowMode?.(mode);
+  }, [qrRoute, user]);
 
   if (qrRoute) {
     return <QrReservaVerificationPage token={qrRoute.token} />;

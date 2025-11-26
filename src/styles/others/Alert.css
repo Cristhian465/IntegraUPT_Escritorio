@@ -7,7 +7,7 @@
   padding-right: 1rem;
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
-  font-size: 0.875rem;
+  font-size: var(--font-size-body);
   display: grid;
   grid-template-columns: 0 1fr;
   gap: 0.125rem;
@@ -62,7 +62,7 @@
   display: grid;
   justify-items: start;
   gap: 0.25rem;
-  font-size: 0.875rem;
+  font-size: var(--font-size-body);
   color: #6b7280;
 }
 

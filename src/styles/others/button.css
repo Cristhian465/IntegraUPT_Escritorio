@@ -5,7 +5,7 @@
   gap: 0.5rem;
   white-space: nowrap;
   border-radius: 0.375rem;
-  font-size: 0.875rem;
+  font-size: var(--font-size-button);
   font-weight: 500;
   transition: all 0.2s;
   outline: none;

@@ -3,6 +3,20 @@
 
 :root {
   --font-size: 16px;
+  --font-size-title: clamp(1.5rem, 0.9vw + 1.25rem, 1.85rem);
+  --font-size-subtitle: clamp(1.25rem, 0.55vw + 1.05rem, 1.45rem);
+  --font-size-body: 1rem;
+  --font-size-caption: 0.9375rem;
+  --font-size-micro: 0.8125rem;
+  --font-size-button: 1rem;
+  --line-height-title: 1.3;
+  --line-height-body: 1.6;
+  --text-3xl: var(--font-size-title);
+  --text-2xl: var(--font-size-title);
+  --text-xl: var(--font-size-subtitle);
+  --text-lg: var(--font-size-body);
+  --text-base: var(--font-size-body);
+  --text-sm: var(--font-size-caption);
   --background: #ffffff;
   --foreground: oklch(0.145 0 0);
   --card: #ffffff;
@@ -134,55 +148,81 @@
  * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
  */
 @layer base {
-  :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) {
     h1 {
-      font-size: var(--text-2xl);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    h2 {
-      font-size: var(--text-xl);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    h3 {
-      font-size: var(--text-lg);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    h4 {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    p {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-normal);
-      line-height: 1.5;
-    }
-
-    label {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    button {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    input {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-normal);
-      line-height: 1.5;
-    }
+    font-size: var(--font-size-title) !important;
+    font-weight: 700;
+    line-height: var(--line-height-title);
   }
+
+  h2 {
+    font-size: var(--font-size-subtitle) !important;
+    font-weight: 600;
+    line-height: var(--line-height-title);
+  }
+
+  h3,
+  h4 {
+    font-size: var(--font-size-body) !important;
+    font-weight: 600;
+    line-height: var(--line-height-title);
+  }
+
+  p,
+  li {
+    font-size: var(--font-size-body) !important;
+    font-weight: var(--font-weight-normal);
+    line-height: var(--line-height-body);
+  }
+
+  small {
+    font-size: var(--font-size-caption) !important;
+    line-height: var(--line-height-body);
+  }
+
+  label {
+    font-size: var(--font-size-body) !important;
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-body);
+  }
+
+  button,
+  .button,
+  [role="button"] {
+    font-size: var(--font-size-button) !important;
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-body);
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: var(--font-size-body) !important;
+    font-weight: var(--font-weight-normal);
+    line-height: var(--line-height-body);
+  }
+}
+
+:where(.title, .section-title, [class*="title"]) {
+  font-size: var(--font-size-title);
+  font-weight: 700;
+  line-height: var(--line-height-title);
+}
+
+:where(.subtitle, .section-subtitle, [class*="subtitle"]) {
+  font-size: var(--font-size-subtitle);
+  font-weight: 600;
+  line-height: var(--line-height-body);
+}
+
+:where(.description, .text-muted, [class*="description"], [class*="detail"], [class*="list"]) {
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
+}
+
+:where(.button-text, .btn, .btn-text) {
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-body);
 }
 
 html {
