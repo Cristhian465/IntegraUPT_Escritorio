@@ -197,10 +197,10 @@ export const GestionAuditoria: React.FC<GestionAuditoriaProps> = ({ onAuditLog }
     <div className="gestion-auditoria">
       <div className="gestion-auditoria-header">
         <div>
-          <h2 className="gestion-auditoria-title">Gestión de auditoría de reservas</h2>
+          <h2 className="gestion-auditoria-title">Gestion de Auditoria de Reservas</h2>
           <p className="gestion-auditoria-subtitle">
-            Consulta los cambios de estado realizados sobre las reservas y detecta anomalías
-            rápidamente.
+            Consulta los cambios de estado realizados sobre las reservas y detecta anomalias
+            rapidamente.
           </p>
         </div>
         <div className="gestion-auditoria-actions">
@@ -243,6 +243,7 @@ export const GestionAuditoria: React.FC<GestionAuditoriaProps> = ({ onAuditLog }
           <Search size={16} />
           <input
             type="search"
+            maxLength={50}
             placeholder="Buscar por auditoria, reserva, usuario o espacio"
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
@@ -262,16 +263,20 @@ export const GestionAuditoria: React.FC<GestionAuditoriaProps> = ({ onAuditLog }
           <label>
             <span>ID Reserva</span>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]{1,4}"
+              maxLength={4}
               value={filterForm.reservaId}
-              onChange={(event) =>
-                setFilterForm((prev) => ({ ...prev, reservaId: event.target.value }))
-              }
+              onChange={(event) => {
+                const value = event.target.value;
+                if (/^\d{0,4}$/.test(value)) {
+                  setFilterForm((prev) => ({ ...prev, reservaId: value }));
+                }
+              }}
               placeholder="Ej: 120"
-              min={0}
             />
           </label>
-
           <label>
             <span>Estado</span>
             <select
@@ -293,14 +298,17 @@ export const GestionAuditoria: React.FC<GestionAuditoriaProps> = ({ onAuditLog }
             <span>Usuario</span>
             <input
               type="text"
+              maxLength={25}
               value={filterForm.usuario}
               onChange={(event) =>
-                setFilterForm((prev) => ({ ...prev, usuario: event.target.value }))
+                setFilterForm((prev) => ({
+                  ...prev,
+                  usuario: event.target.value
+                }))
               }
               placeholder="Nombre o documento"
             />
           </label>
-
           <label>
             <span>Fecha inicio</span>
             <input

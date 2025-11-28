@@ -52,7 +52,7 @@ const sancionesClient: AxiosInstance = axios.create({
   headers: {
     "Content-Type": "application/json"
   },
-  timeout: 15000
+  timeout: 5000
 });
 
 const normalizeError = (error: unknown, serviceName = "sanciones-backend"): Error => {
@@ -106,7 +106,7 @@ const fetchCatalogWithFallback = async <T>(
         headers: {
           "Content-Type": "application/json"
         },
-        timeout: 15000
+        timeout: 5000
       });
 
       return fallbackResponse.data;

@@ -2,6 +2,12 @@ import axios, { type AxiosInstance, type AxiosResponse } from "axios";
 import { ESPACIOS_API_BASE_URL } from "../../../utils/apiConfig";
 import type { Espacio, EspacioPayload } from "./types";
 
+export type EspacioFilters = {
+  estado?: number;
+  escuelaId?: number;
+  tipo?: string;
+};
+
 const espaciosClient: AxiosInstance = axios.create({
   baseURL: ESPACIOS_API_BASE_URL,
   headers: {
@@ -43,8 +49,12 @@ const unwrap = async <T>(promise: Promise<AxiosResponse<T>>): Promise<T> => {
   }
 };
 
-export const fetchEspacios = (): Promise<Espacio[]> =>
-  unwrap(espaciosClient.get<Espacio[]>("/api/espacios"));
+export const fetchEspacios = (filters?: EspacioFilters): Promise<Espacio[]> =>
+  unwrap(
+    espaciosClient.get<Espacio[]>("/api/espacios", {
+      params: filters
+    })
+  );
 
 export const createEspacio = (payload: EspacioPayload): Promise<Espacio> =>
   unwrap(espaciosClient.post<Espacio>("/api/espacios", payload));

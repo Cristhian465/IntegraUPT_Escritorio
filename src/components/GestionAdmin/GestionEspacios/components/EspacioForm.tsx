@@ -13,7 +13,8 @@ interface EspacioFormProps {
   onCancel: () => void;
 }
 
-const tipoSugerencias = ["Aula", "Laboratorio", "Auditorio", "Sala de reuniones", "Coworking"];
+// const tipoSugerencias = ["Aula", "Laboratorio", "Auditorio", "Sala de reuniones", "Coworking"];
+const tipoSugerencias = ["Salon", "Laboratorio"];
 
 export const EspacioForm: React.FC<EspacioFormProps> = ({
   values,
@@ -46,6 +47,7 @@ export const EspacioForm: React.FC<EspacioFormProps> = ({
             id="codigo"
             className="espacio-form-input"
             placeholder="Ej. LAB-A201"
+            maxLength={10}
             value={values.codigo}
             onChange={(event) => onChange("codigo", event.target.value)}
             required
@@ -59,6 +61,7 @@ export const EspacioForm: React.FC<EspacioFormProps> = ({
           <input
             id="nombre"
             className="espacio-form-input"
+            maxLength={20}
             placeholder="Laboratorio de Sistemas"
             value={values.nombre}
             onChange={(event) => onChange("nombre", event.target.value)}
@@ -67,24 +70,24 @@ export const EspacioForm: React.FC<EspacioFormProps> = ({
         </div>
 
         <div className="espacio-form-group">
-          <label className="espacio-form-label" htmlFor="tipo">
-            Tipo
-          </label>
-          <input
-            id="tipo"
-            className="espacio-form-input"
-            list="espacio-tipos"
-            placeholder="Selecciona o escribe el tipo"
-            value={values.tipo}
-            onChange={(event) => onChange("tipo", event.target.value)}
-            required
-          />
-          <datalist id="espacio-tipos">
-            {tipoSugerencias.map((tipo) => (
-              <option key={tipo} value={tipo} />
-            ))}
-          </datalist>
-        </div>
+        <label className="espacio-form-label" htmlFor="tipo">
+          Tipo
+        </label>
+        <select
+          id="tipo"
+          className="espacio-form-input"
+          value={values.tipo}
+          onChange={(event) => onChange("tipo", event.target.value)}
+          required
+        >
+          {tipoSugerencias.map((tipo) => (
+            <option key={tipo} value={tipo}>
+              {tipo}
+            </option>
+          ))}
+        </select>
+      </div>
+
 
         <div className="espacio-form-group">
           <label className="espacio-form-label" htmlFor="capacidad">
@@ -94,10 +97,24 @@ export const EspacioForm: React.FC<EspacioFormProps> = ({
             id="capacidad"
             type="number"
             min={1}
+            max={100}
             className="espacio-form-input"
             placeholder="30"
             value={values.capacidad}
-            onChange={(event) => onChange("capacidad", event.target.value)}
+            onChange={(event) => {
+              const value = event.target.value;
+              if (value === "") {
+                onChange("capacidad", "");
+                return;
+              }
+
+              if (/^\d{1,3}$/.test(value)) {
+                const numericValue = Number(value);
+                if (numericValue >= 1 && numericValue <= 100) {
+                  onChange("capacidad", value);
+                }
+              }
+            }}
             required
           />
         </div>
@@ -151,6 +168,7 @@ export const EspacioForm: React.FC<EspacioFormProps> = ({
         <textarea
           id="equipamiento"
           className="espacio-form-textarea"
+          maxLength={500}
           rows={3}
           placeholder="Computadoras, proyector, aire acondicionado..."
           value={values.equipamiento}

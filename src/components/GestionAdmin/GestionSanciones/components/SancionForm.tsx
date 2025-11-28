@@ -173,6 +173,7 @@ const puedeLimpiarSeleccion = Boolean(
                     <input
                       type="search"
                       value={usuarioSearch}
+                      maxLength={25}
                       onChange={(event) => onUsuarioSearchChange(event.target.value)}
                       placeholder="Ej: 2023088 o Juan Perez"
                       disabled={submitting}
@@ -259,12 +260,21 @@ const puedeLimpiarSeleccion = Boolean(
                   <span>Código del usuario (opcional)</span>
                   <input
                     type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]{0,10}"
+                    maxLength={10}
                     value={values.usuarioCodigo}
-                    onChange={(event) => onChange("usuarioCodigo", event.target.value)}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      if (/^\d{0,10}$/.test(value)) {
+                        onChange("usuarioCodigo", value);
+                      }
+                    }}
                     placeholder="Ingresa el código del usuario"
                     disabled={submitting}
                   />
                 </label>
+
               </div>
 
               <div className="sancion-form-grid">
@@ -294,6 +304,7 @@ const puedeLimpiarSeleccion = Boolean(
         <span>Motivo</span>
         <textarea
           value={values.motivo}
+          maxLength={500}
           onChange={(event) => onChange("motivo", event.target.value)}
           rows={3}
           placeholder="Detalle el motivo de la sanción"

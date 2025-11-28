@@ -4,6 +4,12 @@ export interface Escuela {
   facultadId: number;
 }
 
+export interface Facultad {
+  id: number;
+  nombre: string;
+  abreviatura?: string | null;
+}
+
 export interface Espacio {
   id: number;
   codigo: string;
@@ -14,6 +20,7 @@ export interface Espacio {
   estado: number;
   escuelaId: number;
   escuelaNombre?: string | null;
+  facultadId?: number | null;
 }
 
 export type EspacioPayload = {
