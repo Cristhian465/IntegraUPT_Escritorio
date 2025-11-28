@@ -209,6 +209,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
     return rawRole.charAt(0).toUpperCase() + rawRole.slice(1);
   }, [user.user_metadata.role]);
 
+  const visibleNavGroups = useMemo(
+    () =>
+      NAV_GROUPS.map((group) => ({
+        ...group,
+        modules: group.modules.filter((moduleId) =>
+          availableModules.some((module) => module.id === moduleId)
+        )
+      })).filter((group) => group.modules.length > 0),
+    [availableModules]
+  );
+
   const addAuditLog = useCallback(() => {}, []);
 
   const handleLogout = useCallback(async () => {
@@ -341,7 +352,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
         <div className="admin-sidebar-nav-wrapper">
 
           <nav className="admin-nav">
-            {NAV_GROUPS.map((group) => {
+            {visibleNavGroups.map((group) => {
               const isOpen = openGroups[group.id];
               return (
                 <div key={group.id} className="admin-nav-group">
@@ -406,9 +417,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
       </aside>
 
       <div className="admin-main-stack">
-        <div className="admin-panels">
-          <div className="admin-content-shell">
-            <div className="admin-content">
+        <div className="admin-system-shell">
+          <section className="admin-system-hero admin-module-container">
+            <div className="admin-module-content">
               {activeModule === "labs" && (
                 <GestionEspacios onAuditLog={addAuditLog} />
               )}
@@ -438,11 +449,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
               {activeModule === "audit" && (
                 <GestionAuditoria onAuditLog={addAuditLog} />
               )}
-            </div>
+              </div>
+          </section>
           </div>
-
         </div>
       </div>
-    </div>
   );
 };
