@@ -20,18 +20,18 @@ const env = import.meta.env;
 // ==========================
 // URLs por defecto (fallback)
 // ==========================
-const DEFAULT_LOGIN_BACKEND_URL = "http://localhost:8081";
-const DEFAULT_ESPACIOS_BACKEND_URL = "http://localhost:8082";
-const DEFAULT_HORARIOCURSO_BACKEND_URL = "http://localhost:8083";
-const DEFAULT_RESERVAS_BACKEND_URL = "http://localhost:8084";
-const DEFAULT_HORARIOS_BACKEND_URL = "http://localhost:8085";
-const DEFAULT_INCIDENCIAS_BACKEND_URL = "http://localhost:8086";
-const DEFAULT_SANCIONES_BACKEND_URL = "http://localhost:8087";
-const DEFAULT_ADMIN_RESERVAS_BACKEND_URL = "http://localhost:8088";
-const DEFAULT_USUARIOS_BACKEND_URL = "http://localhost:8092";
-const DEFAULT_REPORTES_BACKEND_URL = "http://localhost:8089";
-const DEFAULT_QR_RESERVAS_BACKEND_URL = "http://localhost:8090";
-const DEFAULT_AUDITORIA_BACKEND_URL = "http://localhost:8091";
+const DEFAULT_LOGIN_BACKEND_URL = "http://161.132.56.147:8081";
+const DEFAULT_ESPACIOS_BACKEND_URL = "http://161.132.56.147:8099";
+const DEFAULT_HORARIOCURSO_BACKEND_URL = "http://161.132.56.147:8083";
+const DEFAULT_RESERVAS_BACKEND_URL = "http://161.132.56.147:8084";
+const DEFAULT_HORARIOS_BACKEND_URL = "http://161.132.56.147:8085";
+const DEFAULT_INCIDENCIAS_BACKEND_URL = "http://161.132.56.147:8086";
+const DEFAULT_SANCIONES_BACKEND_URL = "http://161.132.56.147:8087";
+const DEFAULT_ADMIN_RESERVAS_BACKEND_URL = "http://161.132.56.147:8088";
+const DEFAULT_USUARIOS_BACKEND_URL = "http://161.132.56.147:8092";
+const DEFAULT_REPORTES_BACKEND_URL = "http://161.132.56.147:8089";
+const DEFAULT_QR_RESERVAS_BACKEND_URL = "http://161.132.56.147:8090";
+const DEFAULT_AUDITORIA_BACKEND_URL = "http://161.132.56.147:8091";
 
 // ==========================
 // Resolución final de URLs
